@@ -10,16 +10,16 @@ import (
 	"time"
 )
 
-func insertAccurateWeatherData(w http.ResponseWriter,lat float64, lng float64, timestamp time.Time) {
+func insertAccurateWeatherData(lat float64, lng float64, timestamp time.Time) {
 	db, err := sql.Open("mysql", "root:sebi@tcp(127.0.0.1:3306)/licenta?parseTime=true")
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Fatal(err)
 	}
 	defer db.Close()
 	latStr := fmt.Sprintf("%f", lat)
 	lngStr := fmt.Sprintf("%f", lng)
-	key := "key"
+	key := "mB92WcMzlqTwUmAQDwAGBSKKNjJMUXRq"
 	locationResp, err := http.Get("http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=" + key + "&q=" + latStr + "," + lngStr)
 	if err != nil {
 		log.Fatal(err)
@@ -50,7 +50,7 @@ func insertAccurateWeatherData(w http.ResponseWriter,lat float64, lng float64, t
 	_, err = stmtInsData.Exec(lat, lng, result[0].Pressure.Metric.Unit, timestamp, result[0].Pressure.Metric.Value, "AccuWeather", "Pressure")
 	_, err = stmtInsData.Exec(lat, lng, "", timestamp, result[0].UVIndex, "AccuWeather", "UV Index")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Fatal(err)
 	}
 	fmt.Printf("temperature: %.2f Celsius\n", result[0].Temperature.Metric.Value)
 }
